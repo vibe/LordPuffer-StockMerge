@@ -1,0 +1,22 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Hello Adonis</title>
+  {{ css('style') }}
+</head>
+<body>
+  <section>
+    <div class="upload">
+      <form method="POST" action="/merge" enctype="multipart/form-data">
+        <label for="originalStock">Original Stock File:</label>
+        <input type="file" name="originalStock" id="originalStock">
+        <label for="updatedStock">Updated Stock File:</label>
+        <input type="file" name="updatedStock" id="updatedStock">
+        {{ csrfField() }}
+        <button type="submit">Merge</button>
+      </form>
+    </div>
+  </section>
+</body>
+</html>
