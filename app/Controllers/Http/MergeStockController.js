@@ -1,9 +1,19 @@
 'use strict'
 const Helpers = use('Helpers')
-const csv = require('csvjson')
 const fs = require('fs')
-const jsonToCSV = require('json-to-csv');
 const removeFile = Helpers.promisify(fs.unlink)
+const csv=require('csvtojson')
+var json2csv = require('json2csv');
+
+function toJSON(path) {
+    return new Promise((resolve, reject) => {
+        csv().fromFile(path).on('end_parsed', (json) => {
+            return resolve(json);
+        })
+    })
+}
+
+
 
 class MergeStockController {
     async index({ request, response }) {
@@ -17,26 +27,43 @@ class MergeStockController {
         await originalStock.move(Helpers.tmpPath('uploads'))
         await updatedStock.move(Helpers.tmpPath('uploads'))
 
-        const ogStock = fs.readFileSync(Helpers.tmpPath('uploads') + '/' + originalStock.toJSON().fileName, { encoding: 'utf8' });
-        const upStock = fs.readFileSync(Helpers.tmpPath('uploads') + '/' + updatedStock.toJSON().fileName, { encoding: 'utf8' });
-
-        const ogJson = await csv.toObject(ogStock, {})
-        const upJson = await csv.toObject(upStock, {})
 
 
-        const updatedFile = ogJson.map(product => {
-            const sku = product['meta:purchase_sku'];
+
+
+
+       const ogJson = await toJSON(Helpers.tmpPath('uploads') + '/' + originalStock.toJSON().fileName);
+       const upJson = await toJSON(Helpers.tmpPath('uploads') + '/' + updatedStock.toJSON().fileName);
+       
+
+            const updatedFile = ogJson.map(product => {
+            const sku = product['meta:purchase_sku'] || product['meta:skuId'];
+
+            if( product['meta:skuId']) {
+                product['meta:purchase_sku'] =  product['meta:skuId']
+                product['meta:skuId'] = '';
+            }
             if (!sku) {
                 return product
             }
 
-            const matchedSku = upJson.filter(product => {
-                return product.skuId === sku
+            const matchedSku = upJson.filter(product => {    
+                            
+                if(product.skuId){
+                    return product.skuId === sku
+                }
+                if(product["sku Id"]) {
+                    return product["sku Id"] === sku
+                }
+
+                return false
             })
 
+
+            // console.log(product, sku, matchedSku)
             const match = matchedSku[0]
 
-            const stock = match.QuantityInStock
+            const stock = match.QuantityInStock || match["Quantity In Stock"]
 
             product.stock = stock
             product["manage_stock"] = 'yes'
@@ -47,7 +74,13 @@ class MergeStockController {
 
         })
 
-        await jsonToCSV(updatedFile, `${Helpers.tmpPath('uploads')}/update.csv`)
+        // console.log(updatedFile, {})
+        var csv = json2csv({ data: updatedFile});
+        
+        fs.writeFile(`${Helpers.tmpPath('uploads')}/update.csv`, csv, function(err) {
+          if (err) throw err;
+          console.log('file saved');
+        });
 
         await removeFile(Helpers.tmpPath('uploads') + '/' + originalStock.toJSON().fileName)
         await removeFile(Helpers.tmpPath('uploads') + '/' + updatedStock.toJSON().fileName)
@@ -55,7 +88,7 @@ class MergeStockController {
             `${Helpers.tmpPath('uploads')}/update.csv`
         )
 
-    }
+     }
 }
 
 module.exports = MergeStockController

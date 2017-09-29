@@ -27,9 +27,8 @@
     "@adonisjs/lucid": "^4.0.16",
     "@adonisjs/session": "^1.0.12",
     "@adonisjs/shield": "^1.0.2",
-    "csvjson": "^4.3.4",
     "csvtojson": "^1.1.7",
-    "json-to-csv": "^1.0.0"
+    "json2csv": "^3.11.2"
   },
   "devDependencies": {
     "standard": "^10.0.3"
