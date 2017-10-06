@@ -1,6 +1,6 @@
 'use strict'
 const Helpers = use('Helpers')
-const fs = require('fs')
+const fs = require('fs-extra')
 const removeFile = Helpers.promisify(fs.unlink)
 const csv=require('csvtojson')
 var json2csv = require('json2csv');
@@ -18,7 +18,7 @@ function toJSON(path) {
 class MergeStockController {
     async index({ request, response }) {
         try {
-            await removeFile(`${Helpers.tmpPath('uploads')}/update.csv`)
+            await fs.remove(`${Helpers.tmpPath('uploads')}`)
         } catch (e) {
             //
         }
@@ -38,14 +38,17 @@ class MergeStockController {
 
             const updatedFile = ogJson.map(product => {
             const sku = product['meta:purchase_sku'] || product['meta:skuId'];
-
+            if (!sku) {
+                return product
+            }
+            if(product.sku == 'A3883') {
+                console.log(product);
+            }
             if( product['meta:skuId']) {
                 product['meta:purchase_sku'] =  product['meta:skuId']
                 product['meta:skuId'] = '';
             }
-            if (!sku) {
-                return product
-            }
+
 
             const matchedSku = upJson.filter(product => {    
                             
@@ -59,7 +62,9 @@ class MergeStockController {
                 return false
             })
 
-
+            if(matchedSku.length === 0) {
+                return product;
+            }
             // console.log(product, sku, matchedSku)
             const match = matchedSku[0]
 
