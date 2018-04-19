@@ -62,20 +62,14 @@ class MergeStockController {
         });
 
 
+        const downloadFile = `${Helpers.tmpPath('uploads')}/update.csv`;
 
         const csv = await json2csv({ data: updatedFile});
-        
-        fs.writeFile(`${Helpers.tmpPath('uploads')}/update.csv`, csv, function(err) {
-          if (err) throw err;
-          console.log('file saved');
-        });
-
+        await fs.outputFile(downloadFile, csv);
         await removeFile(Helpers.tmpPath('uploads') + '/' + originalStock.toJSON().fileName)
         await removeFile(Helpers.tmpPath('uploads') + '/' + updatedStock.toJSON().fileName)
         
-        response.attachment(
-            `${Helpers.tmpPath('uploads')}/update.csv`
-        )
+        response.attachment(`${Helpers.tmpPath('uploads')}/update.csv`);
     }
 }
 
