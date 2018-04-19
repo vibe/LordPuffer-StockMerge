@@ -80,7 +80,7 @@ class MergeStockController {
         })
 
         // console.log(updatedFile, {})
-        var csv = json2csv({ data: updatedFile});
+        var csv = await json2csv({ data: updatedFile});
         
         fs.writeFile(`${Helpers.tmpPath('uploads')}/update.csv`, csv, function(err) {
           if (err) throw err;
