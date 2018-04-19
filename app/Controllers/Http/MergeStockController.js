@@ -45,10 +45,15 @@ class MergeStockController {
             if(sku) {
                 const updatedProduct = updatedStockBySku[sku];
                 if(updatedProduct) {
-                    const updatedPrice = updatedProduct['MSRP'].replace('$', '');
-                    const minPrice = updatedProduct['Min Advertised Price'].replace('$', '');
-                    const buyingPrice = updatedProduct['Price'].replace('$', '');
-                    const stock = updatedProduct.QuantityInStock || updatedProduct["Quantity In Stock"];
+                    const msrp = updatedProduct['MSRP'] || updatedProduct['msrp'] || '0.00';
+                    const min = updatedProduct['Min Advertised Price'] || updatedProduct['minAdvertisedPrice'];
+                    const price = updatedProduct['Price'] || updatedProduct['price'];
+                    const qty = updatedProduct.QuantityInStock || updatedProduct["Quantity In Stock"];
+
+                    const updatedPrice = msrp.replace('$', '');
+                    const minPrice = min.replace('$', '');
+                    const buyingPrice = price.replace('$', '');
+                    const stock = qty;
                     
                     product['regular_price'] = updatedPrice;
                     product['sale_price'] = minPrice;
